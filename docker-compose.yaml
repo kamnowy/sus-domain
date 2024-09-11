@@ -1,0 +1,109 @@
+version: '3'
+
+networks: 
+    messaging:
+      driver: bridge
+      ipam:
+        config:
+          - subnet: 172.20.0.0/24
+
+services:
+  postgres:
+    image: postgres:16.2-alpine3.19
+    container_name: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./application-data/db:/var/lib/postgresql/data
+      - ./application-data/configs/postgres_startup_scripts/:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_PASSWORD=S3cret
+      - POSTGRES_USER=postrgres_user
+      - POSTGRES_DB=certstream_db
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2048m"
+        max-file: 3
+    networks:
+      messaging:
+        ipv4_address: 172.20.0.10
+
+  certstream-server:
+    build: 
+      context: ./certstream-server/certstream-server
+      dockerfile: Dockerfile
+    container_name: certstream-server
+    ports:
+      - "4000:4000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2048m"
+        max-file: 3
+    networks:
+      messaging:
+        ipv4_address: 172.20.0.20
+
+  certstream-monitor:
+    build: 
+      context: ./certstream-monitor
+      dockerfile: Dockerfile
+    container_name: certstream-monitor
+    volumes:
+      - ./application-data/configs:/var/configs
+    # environment:
+    #   SEC_CST_CERTSTREAM_URL: "${SEC_CST_CERTSTREAM_URL}"
+    #   SEC_CST_SCORE_LOG: "${SEC_CST_SCORE_LOG}"
+    #   SEC_CST_SCORE_STDOUT: "${SEC_CST_SCORE_STDOUT}"
+    #   SEC_CST_SCORE_REPORT: "${SEC_CST_SCORE_REPORT}"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2048m"
+        max-file: 3
+    networks:
+      messaging:
+        ipv4_address: 172.20.0.21
+    depends_on:
+      - certstream-server
+      - postgres
+
+  domain-reporter:
+    build: 
+      context: ./domain-reporter
+      dockerfile: Dockerfile
+    container_name: domain-reporter
+    volumes:
+      - ./application-data/configs:/var/configs
+    # environment:
+    #   SEC_CST_SLACK_URL: "${SEC_CST_SLACK_URL}"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2048m"
+        max-file: 3
+    networks:
+      messaging:
+        ipv4_address: 172.20.0.30
+    depends_on:
+      - postgres
+
+  ofelia-scheduler:
+    image: mcuadros/ofelia:latest
+    depends_on:
+      - domain-reporter
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      ofelia.job-run.domain-reporter.schedule: "@every 1h"
+      ofelia.job-run.domain-reporter.container: "domain-reporter"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2048m"
+        max-file: 3
+    networks:
+      messaging:
+        ipv4_address: 172.20.0.99

@@ -1,0 +1,22 @@
+keywords:
+# Generic suspicious
+    'example': 100
+    'google': 100
+    'pay': 79
+    'amazon': 90
+    'azure': 79
+# add minus points to popular names
+    'blue': -150
+    'red': -150
+    'orange': -150
+tlds:
+#adds points to specific tlds
+    '.com':
+    '.cc':
+    '.org':
+    '.net':
+    '.site':
+    '.online':
+sus_issuers:
+    - "Google Trust Services LLC"
+    - "Let's Encrypt"

@@ -1,0 +1,31 @@
+certstream: 
+  url: 'ws://certstream-server:4000' #ip or hostname of certstream docker image
+
+score:
+  to_log_in_file: 70
+  to_write_to_stdout: 170
+  to_send_to_reporter: 184
+  
+db:
+  host: 'postgres'
+  username: 'postrgres_user'
+  password: 'S3cret'
+  name: 'certstream_db'
+
+slack: 
+  webhook_url: '' 
+
+ioc:
+  registrar_names:
+  # one or more registrar names to check 
+    - "RegistrarName Ltd."
+  keywords_in_url:
+    # full url, script will change sus-domain to found domain, and try to find list of ioc in html of domain (strings are base64 encoded, run: "echo -n 'keywords'| base64" and paste)  
+    "https://www.sus-domain": [
+      "base64",
+      "base64",
+      "base64",
+    ]
+    "https://sus-domain/static/": ["base64"]
+    "https://sus-domain": [""base64""]
+    "https://sus-domain/pages/": ["base64"]

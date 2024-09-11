@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  domain-reporter:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: domain-reporter
+    networks:
+      - messaging
+
+networks: 
+    messaging:
+      name: rabbitmq_messaging
+      external: true

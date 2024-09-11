@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  domain-reporter:
+    build: 
+      context: ../
+      dockerfile: tests/Dockerfile
+    container_name: domain-reporter-local
+    volumes:
+      - ../../application-data/configs:/var/configs

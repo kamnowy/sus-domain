@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  certstream-monitor:
+    build: 
+      context: ../
+      dockerfile: tests/Dockerfile
+    volumes:
+      - ../../application-data/configs:/var/configs
+    container_name: certstream-monitor-test
